@@ -35,11 +35,51 @@ All migration steps must be executed via MCP + LLM combined workflows with gener
 
 - Use: Generate semantic embeddings for files using the configured model.
 - Default model: `sentence-transformers/all-MiniLM-L6-v2`.
+- Comment vectors: source comments and generated summaries are stored separately in Qdrant collections `code_comments` and `generated_comments`.
+- Generated summaries use an LLM only when `--summary-mode llm` is enabled and `LLM_API_BASE`, `LLM_API_KEY`, `LLM_MODEL` are set; otherwise summaries are skipped.
+- Providers: `openai`, `claude`, `gemini` via `--llm-provider` or `LLM_PROVIDER`.
+- Stored procedure vectors are stored in `stored_procedures`.
 
 ### Roslyn extractor
 
 - Use: Parse C# and VB projects with Roslyn to extract types, methods, LINQ, ORM usage, and stored procedure calls.
 - Output: `c:\Users\shara\code\migration\workspace\data\roslyn\roslyn.jsonl`.
+
+### Stored procedure extraction
+
+- Stored procedure definitions are extracted to `c:\Users\shara\code\migration\workspace\data\stored_procs`.
+- Stored procedure nodes are added to the graph and embedded into Qdrant (`stored_procedures` collection).
+
+### Config parsing fallback
+
+- Order: Roslyn (C#/VB) -> tree-sitter -> regex.
+- Applies to config files (`.config`, `.xml`, `.json`, `.yaml`, `.yml`, `.ini`, `.toml`, `.env`, `.props`, `.settings`, `.wsdl`, `.xsd`).
+
+### Entrypoint tagging
+
+- Frontend entrypoints (`.aspx`, `.ascx`, `.cshtml`, `.asax`) are labeled as `Entrypoint` with `entryKind=frontend`.
+- `FRONTEND_HANDLED_BY` edges link entrypoints to code-behind classes when detected.
+- API/SOAP/WCF entrypoints (`.ashx`, `.asmx`, `.svc`) are labeled as `Entrypoint` with `entryKind=api`, `soap`, or `wcf`.
+- SOAP/WCF attributes (`[WebService]`, `[WebMethod]`, `[ServiceContract]`, `[OperationContract]`) create `SoapEndpoint`, `SoapOperation`, `WcfService`, and `WcfOperation` nodes with handler edges.
+- VB equivalents (`<WebService>`, `<WebMethod>`, `<ServiceContract>`, `<OperationContract>`) are also captured.
+- `.asmx`/`.svc` entrypoints also link to service nodes via `ENTRYPOINT_SERVICE`.
+- SOAP/WCF service nodes are keyed on service class when available to avoid duplicates.
+
+Example (SOAP de-dup):
+```
+[WebService]
+public class CustomerService : WebService
+{
+    [WebMethod]
+    public string Ping() => "ok";
+}
+```
+- `SoapEndpoint` uses `serviceKey = "<rel_path>:CustomerService"` and both the `.asmx` entrypoint and attribute parser link to the same node.
+
+### LLM summary prompts
+
+- System prompt: `c:\Users\shara\code\migration\workspace\prompts\summary-system.md`
+- User prompt: `c:\Users\shara\code\migration\workspace\prompts\summary-user.md`
 
 ## Skills and agent workflow
 

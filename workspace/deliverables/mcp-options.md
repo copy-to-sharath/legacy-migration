@@ -232,3 +232,10 @@ Response:
 - Config file: `c:\Users\shara\code\migration\workspace\deliverables\copilot-mcp.json`
 - Includes the HTTP server entry under `mcpServers` with name `mcp-migration`.
 - VS Code MCP config: `c:\Users\shara\code\migration\.vscode\mcp.json` with the `mcp-migration` server name.
+
+## Qdrant collections
+
+- `code_vectors`: file-level embeddings.
+- `code_comments`: extracted source comments.
+- `generated_comments`: generated summary comments (heuristic source).
+- `stored_procedures`: stored procedure definitions.

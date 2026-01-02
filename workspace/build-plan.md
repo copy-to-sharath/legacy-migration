@@ -44,7 +44,7 @@
 ## MCP step-by-step execution
 
 1) Start MCP server (stdio):
-   - `c:\Users\shara\code\migration\workspace\.venv\Scripts\python.exe c:\Users\shara\code\migration\workspace\mcp_server\mcp_server.py --transport stdio --server-name graph-vector-mcp`
+   - `c:\Users\shara\code\migration\workspace\.venv\Scripts\python.exe c:\Users\shara\code\migration\workspace\mcp_server\mcp_server.py --transport http --server-name graph-vector-mcp`
 
 2) Generate context keywords from MCP:
    - `c:\Users\shara\code\migration\workspace\.venv\Scripts\python.exe c:\Users\shara\code\migration\workspace\scripts\generate_context_keywords_via_mcp.py`

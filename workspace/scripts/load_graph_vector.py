@@ -56,7 +56,10 @@ def main() -> None:
     parser.add_argument("--neo4j-user", default="neo4j")
     parser.add_argument("--neo4j-password", default="neo4j12#456")
     parser.add_argument("--qdrant-url", default="http://localhost:6333")
-    parser.add_argument("--collection", default="code_vectors")
+    parser.add_argument("--collection-code", default="code_vectors")
+    parser.add_argument("--collection-comments", default="code_comments")
+    parser.add_argument("--collection-generated", default="generated_comments")
+    parser.add_argument("--collection-procs", default="stored_procedures")
     parser.add_argument("--batch-size", type=int, default=500)
     parser.add_argument("--skip-neo4j", action="store_true")
     parser.add_argument("--skip-qdrant", action="store_true")
@@ -112,32 +115,52 @@ def main() -> None:
         if not args.skip_qdrant:
             client = QdrantClient(url=args.qdrant_url)
             vectors_ds = ds.dataset(os.path.join(args.parquet_root, "vectors"), format="parquet", partitioning="hive")
-            first_batch = next(scan_batches(vectors_ds, 1), [])
-            if not first_batch:
-                logging.warning("No vectors found; skipping Qdrant load")
-                return
-            dim = len(first_batch[0]["vector"])
-            if client.collection_exists(collection_name=args.collection):
-                client.delete_collection(collection_name=args.collection)
-            client.create_collection(
-                collection_name=args.collection,
-                vectors_config=qmodels.VectorParams(size=dim, distance=qmodels.Distance.COSINE),
-            )
-            logging.info("Qdrant collection ready name=%s dim=%s", args.collection, dim)
+            collection_map = {
+                "File": args.collection-code,
+                "Comment": args.collection-comments,
+                "GeneratedComment": args.collection-generated,
+                "StoredProcedure": args.collection-procs,
+            }
+            created: Dict[str, int] = {}
 
             for batch in scan_batches(vectors_ds, args.batch_size):
-                points = []
+                points_by_collection: Dict[str, List[qmodels.PointStruct]] = {}
                 for row in batch:
+                    vector_type = row.get("type")
+                    collection = collection_map.get(vector_type, args.collection-code)
+                    if collection not in created:
+                        dim = len(row["vector"])
+                        if client.collection_exists(collection_name=collection):
+                            client.delete_collection(collection_name=collection)
+                        client.create_collection(
+                            collection_name=collection,
+                            vectors_config=qmodels.VectorParams(size=dim, distance=qmodels.Distance.COSINE),
+                        )
+                        created[collection] = dim
+                        logging.info("Qdrant collection ready name=%s dim=%s", collection, dim)
+
                     payload = {
-                        "type": row["type"],
-                        "context": row["context"],
-                        "sourceFile": row["sourceFile"],
-                        "sourceLine": row["sourceLine"],
+                        "type": row.get("type"),
+                        "context": row.get("context"),
+                        "sourceFile": row.get("sourceFile"),
+                        "sourceLine": row.get("sourceLine"),
                     }
+                    if "text" in row:
+                        payload["text"] = row.get("text")
+                    if "commentKind" in row:
+                        payload["commentKind"] = row.get("commentKind")
+                    if "generatedSource" in row:
+                        payload["generatedSource"] = row.get("generatedSource")
+                    if "procName" in row:
+                        payload["procName"] = row.get("procName")
                     point_id = str(uuid.uuid5(uuid.NAMESPACE_URL, row["id"]))
-                    points.append(qmodels.PointStruct(id=point_id, vector=row["vector"], payload=payload))
-                client.upsert(collection_name=args.collection, points=points)
-                logging.info("Upserted vectors batch size=%s", len(points))
+                    points_by_collection.setdefault(collection, []).append(
+                        qmodels.PointStruct(id=point_id, vector=row["vector"], payload=payload)
+                    )
+
+                for collection, points in points_by_collection.items():
+                    client.upsert(collection_name=collection, points=points)
+                    logging.info("Upserted vectors batch collection=%s size=%s", collection, len(points))
 
         logging.info("Graph/vector load complete")
     except KeyboardInterrupt:

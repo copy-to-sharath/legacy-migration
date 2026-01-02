@@ -1,0 +1,11 @@
+
+cd C:\Users\shara\code\migration\workspace
+python scripts\load_graph_vector.py `
+  --parquet-root "c:\Users\shara\code\migration\workspace\data\parquet" `
+  --neo4j-uri "bolt://localhost:7687" `
+  --neo4j-user "neo4j" `
+  --neo4j-password "neo4j12#456" `
+  --skip-qdrant
+
+
+  python.exe mcp_server\mcp_server.py --transport http --server-name graph-vector-mcp

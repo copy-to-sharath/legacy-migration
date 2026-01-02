@@ -20,6 +20,9 @@ services:
       - "7474:7474"
       - "7687:7687"
       - "7473:7473"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
     environment:
  
       - NEO4J_AUTH=neo4j/neo4j12#456
@@ -68,4 +71,3 @@ volumes:
   qdrant_data:
   neo4j_data:
   neo4j_logs:
-

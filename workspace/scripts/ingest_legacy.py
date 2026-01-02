@@ -140,8 +140,26 @@ def load_state(state_file: str) -> Dict[str, int]:
         return json.load(f)
 
 
-def save_state(state_file: str, index: int) -> None:
+def save_state(
+    state_file: str,
+    index: int,
+    processed: Optional[int] = None,
+    total: Optional[int] = None,
+    start: Optional[int] = None,
+    end: Optional[int] = None,
+    status: Optional[str] = None,
+) -> None:
     state = {"index": index, "updated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+    if processed is not None:
+        state["processed"] = processed
+    if total is not None:
+        state["total"] = total
+    if start is not None:
+        state["range_start"] = start
+    if end is not None:
+        state["range_end"] = end
+    if status:
+        state["status"] = status
     with open(state_file, "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2)
 
@@ -1601,6 +1619,7 @@ def main() -> None:
     parser.add_argument("--summary-system-prompt", default=r"c:\Users\shara\code\migration\workspace\prompts\summary-system.md")
     parser.add_argument("--summary-user-prompt", default=r"c:\Users\shara\code\migration\workspace\prompts\summary-user.md")
     parser.add_argument("--stored-proc-dir", default=r"c:\Users\shara\code\migration\workspace\data\stored_procs")
+    parser.add_argument("--progress-every", type=int, default=25)
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -1614,6 +1633,8 @@ def main() -> None:
         args.workers,
         args.chunksize,
     )
+    logging.info("Preloading embedding model to avoid concurrent downloads in workers")
+    _init_model(args.embedding_model)
     logging.info("Using Roslyn index for C# and VB parsing")
     logging.info("Summary mode=%s", args.summary_mode)
     if args.workers < 1:
@@ -1633,6 +1654,7 @@ def main() -> None:
         end = min(start + args.max_files, len(files))
 
         logging.info("Discovered %s files, processing range [%s, %s)", len(files), start, end)
+        save_state(args.state_file, start, processed=0, total=len(files), start=start, end=end, status="running")
 
         nodes_rows: List[Dict[str, object]] = []
         edges_rows: List[Dict[str, object]] = []
@@ -1671,6 +1693,17 @@ def main() -> None:
                 vector_rows.extend(vec_rows)
                 processed += 1
 
+                if args.progress_every > 0 and processed % args.progress_every == 0:
+                    save_state(
+                        args.state_file,
+                        start + processed,
+                        processed=processed,
+                        total=len(files),
+                        start=start,
+                        end=end,
+                        status="running",
+                    )
+
                 if len(nodes_rows) >= args.batch_size:
                     logging.info(
                         "Writing batch processed=%s nodes=%s edges=%s files=%s vectors=%s",
@@ -1688,7 +1721,15 @@ def main() -> None:
                     edges_rows.clear()
                     files_rows.clear()
                     vector_rows.clear()
-                    save_state(args.state_file, start + processed)
+                    save_state(
+                        args.state_file,
+                        start + processed,
+                        processed=processed,
+                        total=len(files),
+                        start=start,
+                        end=end,
+                        status="running",
+                    )
 
         if nodes_rows or edges_rows or files_rows or vector_rows:
             logging.info("Writing final batch nodes=%s edges=%s files=%s vectors=%s", len(nodes_rows), len(edges_rows), len(files_rows), len(vector_rows))
@@ -1696,10 +1737,11 @@ def main() -> None:
             write_dataset(edges_rows, os.path.join(args.out, "edges"), ["context", "type"], "edges")
             write_dataset(files_rows, os.path.join(args.out, "files"), ["context", "ext"], "files")
             write_dataset(vector_rows, os.path.join(args.out, "vectors"), ["context", "type"], "vectors")
-            save_state(args.state_file, end)
+            save_state(args.state_file, end, processed=processed, total=len(files), start=start, end=end, status="complete")
 
         logging.info("Ingestion complete index=%s", end)
     except KeyboardInterrupt:
+        save_state(args.state_file, start + processed, processed=processed, total=len(files), start=start, end=end, status="interrupted")
         logging.error("Ingestion interrupted by user; notify and resume from state file.")
         raise
 

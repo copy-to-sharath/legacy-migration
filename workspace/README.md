@@ -42,10 +42,9 @@ podman volume rm workspace_neo4j_data workspace_neo4j_logs
 ```powershell
 Remove-Item -Force -ErrorAction SilentlyContinue -Path `
   workspace\data\roslyn\roslyn.jsonl, `
-  workspace\state\roslyn_missing.txt, `
-  workspace\state\ingest_state.json, `
   workspace\deliverables\citations\index.md
 Remove-Item -Force -Recurse -ErrorAction SilentlyContinue -Path workspace\data\parquet
+Remove-Item -Force -Recurse -ErrorAction SilentlyContinue -Path workspace\state\*
 ```
 
 If you also want to clear generated deliverables, remove these folders:
@@ -82,11 +81,13 @@ workspace\.venv\Scripts\python.exe workspace\scripts\ingest_legacy.py `
   --state-file "c:\Users\shara\code\migration\workspace\state\ingest_state.json" `
   --summary-mode "llm" `
   --llm-provider "openai" `
-  --stored-proc-dir "c:\Users\shara\code\migration\workspace\data\stored_procs"
+  --stored-proc-dir "c:\Users\shara\code\migration\workspace\data\stored_procs" `
+  --progress-every 25
 ```
 
 Notes:
 - The ingest uses `state/ingest_state.json` to resume. Delete it if you want a clean run.
+- During ingestion, the state file is updated with progress fields (`processed`, `total`, `range_start`, `range_end`, `status`) every `--progress-every` files.
 - Increase `--max-files` / `--batch-size` for larger runs.
 - LLM summaries require `LLM_API_BASE`, `LLM_API_KEY`, and `LLM_MODEL` environment variables; otherwise summaries are skipped.
 - Set `LLM_PROVIDER` to `openai`, `claude`, or `gemini` (or use `--llm-provider`).

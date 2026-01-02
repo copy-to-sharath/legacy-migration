@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+downloads/
+eggs/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+*.manifest
+*.spec
+.venv/
+venv/
+ENV/
+env/
+
+# C# / .NET
+bin/
+bin/Release/
+workspace/roslyn_extractor/bin/
+workspace/roslyn_extractor/bin/Release/
+workspace/roslyn_extractor/bin/Debug/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+TestResults/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# OS / tooling
+.DS_Store
+Thumbs.db
+

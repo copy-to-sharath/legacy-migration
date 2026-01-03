@@ -79,9 +79,9 @@ Generators must run a 2-iteration loop with the matching Judge:
 
 ### Ubiquitous Language (UL)
 - Start from legacy code terms; keep business language only.
-- Use the UL template sections 1-7 and produce UL graph artifacts.
+- Use the UL term catalog template and produce UL graph artifacts.
 - Cross-check terms and citations with the full citation index.
-- Batch markdown must use `# <ModuleName>` and `## <Section Title>` headings so the assembler can merge sections without duplicating headers.
+- Batch markdown must use `# <TermName>`, include `## Term Catalog`, and include one `### Term: <TermName>` entry so the assembler can merge sections without duplicating headers.
 - Final markdown assembly:
   - `workspace\.venv\Scripts\python.exe workspace\scripts\assemble_ul_from_parquet.py --parquet-root "c:\Users\shara\code\migration\workspace\deliverables\generated\ul-parquet\ul-sections" --output "c:\Users\shara\code\migration\workspace\deliverables\generated\ubiquitous-language.md"`
 
@@ -121,8 +121,8 @@ Always review Neo4j labels and relationship types before querying, and prefer fi
 Follow the numbered order below.
 
 ### 1) ubiquitous-language
-- Agent-UL-Gen-1: Generate ubiquitous language from MCP evidence using the ubiquitous language template. Populate the canonical model section. Cover the entire codebase by splitting it into manageable chunks, process each chunk, then merge into a single deliverable. Ensure all graph nodes are considered. Review all available artifacts first; ask targeted questions only if needed. Audience: Business Analyst and Domain Expert; avoid implementation details.
-- Agent-UL-Judge-1: Review ubiquitous language for missing/weak citations and any inferred content, and validate canonical model completeness. Ensure tone is business-focused and non-technical.
+- Agent-UL-Gen-1: Generate ubiquitous language from MCP evidence using the term catalog template. Populate all required term fields. Cover the entire codebase by splitting it into manageable chunks, process each chunk, then merge into a single deliverable. Ensure all graph nodes are considered. Review all available artifacts first; ask targeted questions only if needed. Audience: Business Analyst and Domain Expert; avoid implementation details.
+- Agent-UL-Judge-1: Review ubiquitous language for missing/weak citations and any inferred content, and validate that every term includes the required fields. Ensure tone is business-focused and non-technical.
 
 ### 2) brd
 - Agent-BRD-Gen-2: Generate the BRD from MCP evidence using the BRD template. Cover the entire codebase by splitting it into manageable chunks, process each chunk, then merge into a single BRD. Ensure all graph nodes are considered. Review all available artifacts first; ask targeted questions only if needed. Audience: Business Analyst and Domain Expert; avoid technical terms.

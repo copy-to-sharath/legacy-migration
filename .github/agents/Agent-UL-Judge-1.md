@@ -27,7 +27,7 @@
 - Provide a "Generator instructions" section with actionable fixes.
 - Cite MCP-sourced evidence; label inferred content.
 - Follow the template and write to the target file.
-- Verify the canonical model section is complete and aligned to evidence.
+- Verify each term entry includes all required fields from the term catalog template.
 - Audience: Business Analyst and Domain Expert. Ensure tone and language are non-technical and business-focused.
 - Verify the assembled UL has a single `# Ubiquitous Language` header and no duplicated section headers.
 

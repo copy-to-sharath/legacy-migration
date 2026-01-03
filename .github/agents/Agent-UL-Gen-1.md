@@ -30,21 +30,22 @@
   4) Run the Judge again and apply any remaining fixes.
 - After iteration 2, write a brief summary and open issues to `$genReport`.
 - Cite MCP-sourced evidence; label inferred content.
-- Follow the template structure exactly (sections 1-7, YAML blocks, and Mermaid flow).
+- Follow the UL term catalog template exactly (bounded contexts optional, term catalog required).
 - Generate UL content in small batches and write to Parquet (source of truth):
   - `workspace/deliverables/generated/ul-parquet/ul-sections/`
 - Batch markdown files may live in `workspace/deliverables/generated/ul-parquet/ul-sections/` and will be used to regenerate Parquet when rebuilding.
 - Batch markdown format requirements:
-  - One module per file.
-  - Start with `# <ModuleName>`.
-  - Use `## <Section Title>` for the template sections (1-7).
+  - One term per file.
+  - Start with `# <TermName>`.
+  - Include `## Term Catalog`.
+  - Include one `### Term: <TermName>` entry and the required fields in order.
   - Do not include a global `# Ubiquitous Language` header.
 - Before rebuilding from markdown, delete existing `*.parquet` files in `ul-sections` to avoid stale data.
 - After all batches are complete, assemble the final Markdown deliverable:
   - `workspace/deliverables/generated/ubiquitous-language.md`
 - Use `workspace\.venv\Scripts\python.exe workspace\scripts\write_ul_parquet.py` to write each batch to Parquet.
 - Example batch command:
-  - `workspace\.venv\Scripts\python.exe workspace\scripts\write_ul_parquet.py --input-md "c:\Users\shara\code\migration\workspace\deliverables\generated\ul-parquet\ul-sections\Nop.Payment.Manual.md" --batch-id "Nop.Payment.Manual" --section "Nop.Payment.Manual" --subsection "" --context "ubiquitous-language"`
+  - `workspace\.venv\Scripts\python.exe workspace\scripts\write_ul_parquet.py --input-md "c:\Users\shara\code\migration\workspace\deliverables\generated\ul-parquet\ul-sections\Nop.Payment.Manual.md" --batch-id "Nop.Payment.Manual" --section "Term Catalog" --subsection "" --context "ubiquitous-language"`
   - Note: `section`/`subsection` are required by the script but the assembler uses headings in the markdown content.
 - Use `workspace\.venv\Scripts\python.exe workspace\scripts\assemble_ul_from_parquet.py` to assemble the Markdown from Parquet batches.
 - Example assemble command:
@@ -54,7 +55,7 @@
   - `workspace/deliverables/generated/ul-parquet/edges/`
 - Ingest the UL graph artifacts into Neo4j using:
   - `workspace/scripts/load_graph_vector.py --parquet-root "c:\Users\shara\code\migration\workspace\deliverables\generated\ul-parquet" --skip-qdrant`
-- Populate the canonical model section (entities, value objects, aggregates, events).
+- Ensure each term entry includes the required fields (term, aliases, context, definition, attributes, rules, lifecycle, examples, notes).
 - Audience: Business Analyst and Domain Expert. Use domain language and avoid implementation details.
 
 ## Query Requirements

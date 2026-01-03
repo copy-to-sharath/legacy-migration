@@ -82,6 +82,7 @@ Generators must run a 2-iteration loop with the matching Judge:
 - Use the UL term catalog template and produce UL graph artifacts.
 - Cross-check terms and citations with the full citation index.
 - Batch markdown must use `# <TermName>`, include `## Term Catalog`, and include one `### Term: <TermName>` entry so the assembler can merge sections without duplicating headers.
+- Complete all batch markdown files before generating any Parquet output.
 - Final markdown assembly:
   - `workspace\.venv\Scripts\python.exe workspace\scripts\assemble_ul_from_parquet.py --parquet-root "c:\Users\shara\code\migration\workspace\deliverables\generated\ul-parquet\ul-sections" --output "c:\Users\shara\code\migration\workspace\deliverables\generated\ubiquitous-language.md"`
 

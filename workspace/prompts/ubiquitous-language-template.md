@@ -46,6 +46,8 @@ Each term entry must include:
   - Not: <CommonConfusion1>, <CommonConfusion2>
 - Bounded context: <ContextName>
 - Short definition: <1-2 sentences, business-facing>
+- Citations:
+  - `<sourceFile>:<line>` - <short evidence note>
 - Core attributes:
   - <AttributeName> (type): <Business meaning>
   - <AttributeName> (type): <Business meaning>

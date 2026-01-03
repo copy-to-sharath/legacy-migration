@@ -31,8 +31,9 @@
 - After iteration 2, write a brief summary and open issues to `$genReport`.
 - Cite MCP-sourced evidence; label inferred content.
 - Follow the UL term catalog template exactly (bounded contexts optional, term catalog required).
-- Generate UL content in small batches and write to Parquet (source of truth):
-  - `workspace/deliverables/generated/ul-parquet/ul-sections/`
+- Generate UL content in small batches as Markdown first, then write to Parquet:
+  - Batch Markdown location: `workspace/deliverables/generated/ul-parquet/ul-sections/`
+  - Only start Parquet generation after all batch markdown files are completed.
 - Batch markdown files may live in `workspace/deliverables/generated/ul-parquet/ul-sections/` and will be used to regenerate Parquet when rebuilding.
 - Batch markdown format requirements:
   - One term per file.

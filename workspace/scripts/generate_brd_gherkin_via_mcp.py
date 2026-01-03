@@ -11,7 +11,7 @@ from mcp_server.mcp_client import MCPClient
 from context_keywords import load_context_keywords
 from prompt_catalog import load_brd_template, workflow_header_lines
 
-DELIVERABLES = ROOT / "deliverables"
+DELIVERABLES = ROOT / "deliverables" / "generated"
 FEATURES_DIR = DELIVERABLES / "features"
 BOUNDED_CONTEXTS_PATH = DELIVERABLES / "bounded-contexts.md"
 

@@ -14,45 +14,26 @@ from qdrant_client import QdrantClient
 
 
 WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
-PROMPTS_DIR = WORKSPACE_ROOT / "prompts"
-SYSTEM_PROMPTS_PATH = PROMPTS_DIR / "system-prompts.md"
+AGENTS_DIR = WORKSPACE_ROOT.parent / ".github" / "agents"
+
+PROMPT_MAP = {
+    "Generator": (AGENTS_DIR / "Prompt-Generator.md").read_text(encoding="utf-8").strip(),
+    "Judge": (AGENTS_DIR / "Prompt-Judge.md").read_text(encoding="utf-8").strip(),
+}
 
 
 class PromptStore:
-    def __init__(self, prompts_path: Path) -> None:
-        self._path = prompts_path
+    def __init__(self, prompt_map: Dict[str, str]) -> None:
+        self._prompt_map = prompt_map
 
     def list_prompts(self) -> List[str]:
-        if not self._path.exists():
-            raise RuntimeError(f"System prompts file not found: {self._path}")
-        prompts: List[str] = []
-        for line in self._path.read_text(encoding="ascii").splitlines():
-            line = line.strip()
-            if line.startswith("## "):
-                prompts.append(line.replace("## ", "").strip())
-        if not prompts:
-            raise RuntimeError(f"No prompt roles found in {self._path}")
-        return prompts
+        return sorted(self._prompt_map.keys())
 
     def get_prompt(self, role: str) -> str:
-        if not self._path.exists():
-            raise RuntimeError(f"System prompts file not found: {self._path}")
-        content = self._path.read_text(encoding="ascii")
-        marker = f"## {role}"
-        lines = content.splitlines()
-        start = None
-        for idx, line in enumerate(lines):
-            if line.strip() == marker:
-                start = idx + 1
-                break
-        if start is None:
+        prompt = self._prompt_map.get(role)
+        if prompt is None:
             raise ValueError(f"Prompt role not found: {role}")
-        collected: List[str] = []
-        for line in lines[start:]:
-            if line.strip().startswith("## "):
-                break
-            collected.append(line)
-        return "\n".join(collected).strip()
+        return prompt
 
 
 class MCPServer:
@@ -62,7 +43,7 @@ class MCPServer:
         self._driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_password))
         self._qdrant = QdrantClient(url=qdrant_url)
         self._server_name = server_name
-        self._prompts = PromptStore(SYSTEM_PROMPTS_PATH)
+        self._prompts = PromptStore(PROMPT_MAP)
 
     def close(self) -> None:
         self._driver.close()

@@ -12,7 +12,7 @@ from context_keywords import classify_context as classify_by_keywords
 from context_keywords import load_context_keywords
 from prompt_catalog import workflow_header_lines
 
-DELIVERABLES = ROOT / "deliverables"
+DELIVERABLES = ROOT / "deliverables" / "generated"
 FEATURES_DIR = DELIVERABLES / "features"
 TESTS_DIR = DELIVERABLES / "tests"
 

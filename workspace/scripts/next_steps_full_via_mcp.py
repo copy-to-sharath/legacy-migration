@@ -14,7 +14,7 @@ from context_keywords import classify_context as classify_by_keywords
 from context_keywords import load_context_keywords
 from prompt_catalog import load_api_mapping_template, workflow_header_lines
 
-DELIVERABLES = ROOT / "deliverables"
+DELIVERABLES = ROOT / "deliverables" / "generated"
 SRC_DIR = DELIVERABLES / "src"
 
 CONTEXT_KEYWORDS = load_context_keywords()

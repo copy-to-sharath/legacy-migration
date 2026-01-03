@@ -1,0 +1,48 @@
+---
+config:
+  layout: elk
+  look: neo
+  theme: neo
+---
+flowchart TB
+  subgraph L1[Developer - VS Code]
+    direction TB
+    A1[Request]
+    A2[Select Generator]
+    A3[Review and Approve]
+  end
+
+  subgraph L2[Agents - Copilot Chat]
+    direction TB
+    B1[Generator]
+    B2[Judge]
+  end
+
+  subgraph L3[MCP]
+    direction TB
+    C1[MCP client]
+    C2[graph-vector-mcp server]
+  end
+
+  subgraph L4[Data]
+    direction TB
+    D1[Neo4j]
+    D2[Qdrant]
+  end
+
+  subgraph L5[Deliverables - repeat for each artifact]
+    direction TB
+    E1[Generate]
+    E2[Judge]
+    E3[Gate]
+    E1 --> E2 --> E3
+  end
+
+  A1 --> A2 --> B1
+  B1 --> C1 --> C2
+  C2 --> D1
+  C2 --> D2
+  B1 --> B2 --> A3
+  B1 --> E1
+  E2 --> B2
+  E3 --> A3

@@ -5,6 +5,33 @@
 		}
 	],
 	"settings": {
-		"dotnet.preferCSharpExtension": true
+		"dotnet.preferCSharpExtension": true,
+		"chat.agent.maxRequests": 100
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-python.python",
+			"ms-vscode.powershell",
+			"ms-dotnettools.csharp",
+			"ms-dotnettools.csdevkit",
+			"ms-dotnettools.vscode-dotnet-runtime",
+			"ms-azuretools.vscode-docker",
+			"ms-vscode.vscode-container-tools",
+			"ms-toolsai.datawrangler",
+			"ms-vscode-remote.remote-containers",
+			"ms-azuretools.vscode-docker",
+			"ms-toolsai.jupyter",
+			"ms-toolsai.jupyter-keymap",
+			"ms-toolsai.jupyter-renderers",
+			"ms-toolsai.jupyter-slideshow",
+			"yzane.markdown-pdf",
+			"vstirbu.vscode-mermaid-preview",
+			"neo4j.neo4j-vscode",
+			"ms-vscode.PowerShell",
+			"ms-python.vscode-pylance",
+			"ms-python.python",
+			"ms-python.debugpy",
+			"ms-vscode-remote.remote-wsl"
+		]
 	}
 }

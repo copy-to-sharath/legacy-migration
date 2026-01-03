@@ -18,7 +18,7 @@ from prompt_catalog import (
     load_reqnroll_readme_template,
     workflow_header_lines,
 )
-DELIVERABLES = ROOT / "deliverables"
+DELIVERABLES = ROOT / "deliverables" / "generated"
 FEATURES_DIR = DELIVERABLES / "features"
 TESTS_DIR = DELIVERABLES / "tests"
 SRC_DIR = DELIVERABLES / "src"

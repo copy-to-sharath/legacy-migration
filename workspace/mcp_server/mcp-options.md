@@ -3,9 +3,10 @@
 ## Server identity
 
 - Name: `graph-vector-mcp`
-- Transports: HTTP
+- Transports: HTTP, stdio
 - Purpose: expose Neo4j and Qdrant query capabilities and prompt retrieval for LLM use.
 - Migration policy: all migration outputs must be generated through MCP + LLM combined workflows with generator/judge agents and human approval.
+- Prompts are derived from agent instructions in `.github/agents` (see `Prompt-Generator.md` and `Prompt-Judge.md`) and exposed via `list_prompts`/`get_prompt`.
 
 ## JSON-RPC methods (MCP-compatible)
 
@@ -227,9 +228,26 @@ Response:
 - SSE stream is available via GET `http://127.0.0.1:8765/` for MCP clients that expect server events.
 - Script helper: `c:\Users\shara\code\migration\workspace\scripts\start_mcp_http.ps1`
 
+### stdio
+
+- Start server (stdio):
+  - `c:\Users\shara\code\migration\workspace\.venv\Scripts\python.exe c:\Users\shara\code\migration\workspace\mcp_server\mcp_server.py --transport stdio --server-name graph-vector-mcp`
+- Example MCP config (stdio):
+```json
+{
+  "servers": {
+    "mcp-migration-stdio": {
+      "type": "stdio",
+      "command": "c:/Users/shara/code/migration/workspace/.venv/Scripts/python.exe",
+      "args": ["c:/Users/shara/code/migration/workspace/mcp_server/mcp_server.py", "--transport", "stdio", "--server-name", "graph-vector-mcp"]
+    }
+  }
+}
+```
+
 ## Copilot Chat integration file
 
-- Config file: `c:\Users\shara\code\migration\workspace\deliverables\copilot-mcp.json`
+- Config file: `c:\Users\shara\code\migration\workspace\deliverables\generated\copilot-mcp.json`
 - Includes the HTTP server entry under `mcpServers` with name `mcp-migration`.
 - VS Code MCP config: `c:\Users\shara\code\migration\.vscode\mcp.json` with the `mcp-migration` server name.
 

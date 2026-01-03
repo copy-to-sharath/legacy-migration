@@ -6,7 +6,7 @@ param(
     [string]$OutputPath
 )
 
-$allowed = @("api-mapping", "brd", "gherkin", "tests", "code")
+$allowed = @("api-mapping", "brd", "bounded-contexts", "gherkin", "tests", "code")
 if ($Deliverable -notin $allowed) {
     throw "Unknown deliverable '$Deliverable'. Allowed: $($allowed -join ', ')"
 }
@@ -56,7 +56,7 @@ if ($section.Count -eq 0) {
     throw "Generator instructions section is empty in $JudgeReport"
 }
 
-$handoffDir = Join-Path $PSScriptRoot "..\\..\\.github\\agents\\handoffs"
+$handoffDir = Join-Path $PSScriptRoot "..\\agents\\handoffs"
 New-Item -ItemType Directory -Force -Path $handoffDir | Out-Null
 
 if (-not $OutputPath) {

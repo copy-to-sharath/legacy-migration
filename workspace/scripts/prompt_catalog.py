@@ -8,7 +8,6 @@ ROOT = Path(r"c:\Users\shara\code\migration\workspace")
 PROMPTS_DIR = ROOT / "prompts"
 AGENTS_PATH = PROMPTS_DIR / "agents.md"
 WORKFLOW_TEMPLATE_PATH = PROMPTS_DIR / "workflow-header.md"
-SYSTEM_PROMPTS_PATH = PROMPTS_DIR / "system-prompts.md"
 BRD_TEMPLATE_PATH = PROMPTS_DIR / "brd-template.md"
 API_MAPPING_TEMPLATE_PATH = PROMPTS_DIR / "api-mapping-template.md"
 REQNROLL_README_TEMPLATE_PATH = PROMPTS_DIR / "reqnroll-readme-template.md"
@@ -72,22 +71,14 @@ def workflow_header_lines(role_key: str, comment_prefix: str = "") -> List[str]:
 
 
 def load_system_prompt(role: str) -> str:
-    content = _read_prompt(SYSTEM_PROMPTS_PATH)
-    pattern = rf"^##\\s+{re.escape(role)}\\s*$"
-    lines = content.splitlines()
-    start = None
-    for idx, line in enumerate(lines):
-        if re.match(pattern, line.strip()):
-            start = idx + 1
-            break
-    if start is None:
+    prompt_map = {
+        "Generator": Path(r"c:\Users\shara\code\migration\.github\agents\Prompt-Generator.md"),
+        "Judge": Path(r"c:\Users\shara\code\migration\.github\agents\Prompt-Judge.md"),
+    }
+    path = prompt_map.get(role)
+    if not path:
         raise RuntimeError(f"System prompt not found for role: {role}")
-    collected: List[str] = []
-    for line in lines[start:]:
-        if line.strip().startswith("## "):
-            break
-        collected.append(line)
-    return "\n".join(collected).strip()
+    return _read_prompt(path)
 
 
 def load_brd_template() -> str:

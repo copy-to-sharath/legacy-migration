@@ -1,10 +1,11 @@
 {
-  "servers": {
+  "mcpServers": {
     "mcp-migration": {
+      "transport": "http",
       "url": "http://127.0.0.1:8765"
     },
     "mcp-migration-stdio": {
-      "type": "stdio",
+      "transport": "stdio",
       "command": "c:/Users/shara/code/migration/workspace/.venv/Scripts/python.exe",
       "args": [
         "c:/Users/shara/code/migration/workspace/mcp_server/mcp_server.py",

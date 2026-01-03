@@ -2,7 +2,7 @@
 
 1) Bootstrap workspace tooling: uv env, Python deps (duckdb, pyarrow, neo4j/qdrant clients), Podman services; verify connectivity.
 2) Configure MCP server connectivity (stdio + HTTP) and verify local clients can query graph/vector stores.
-   - Confirm MCP prompts are loaded from `workspace\prompts\system-prompts.md` via `list_prompts`/`get_prompt`.
+   - Confirm MCP prompts are loaded from the agent files in `.github/agents` via `list_prompts`/`get_prompt`.
 3) Ingest legacy repo into Parquet + graph/vector indexes; build citation index via graph/vector queries and DuckDB validation.
 4) Produce documentation artifacts in order (ingestion plan -> BRD -> bounded contexts -> Gherkin -> Reqnroll tests -> API mapping -> .NET 8 design spec -> MCP options), each via MCP + LLM with generator/judge + approval gates.
 5) Implement .NET 8 solution incrementally by bounded context via MCP + LLM; add tests, run build/host/test, and update mapping/coverage until parity gates pass.
@@ -11,7 +11,7 @@
 
 1) Refresh context keywords via MCP:
    - Script: `workspace/scripts/generate_context_keywords_via_mcp.py`
-   - Inputs: `workspace/deliverables/bounded-contexts.md`, Neo4j graph
+   - Inputs: `workspace/deliverables/generated/bounded-contexts.md`, Neo4j graph
    - Output: `workspace/state/context_keywords.json`
 
 2) Query graph/vector via MCP for citations and endpoints:
@@ -20,7 +20,7 @@
 
 3) Generate/refresh API mapping via MCP:
    - Script: `workspace/scripts/next_steps_llm_mcp.py` (or `next_steps_full_via_mcp.py`)
-   - Output: `workspace/deliverables/api-mapping.md`
+   - Output: `workspace/deliverables/generated/api-mapping.md`
    - Classification uses `context_keywords.json` only
 
 4) Implement per-context logic in layers (LLM + MCP citations):
@@ -31,14 +31,14 @@
 
 5) Reqnroll alignment:
    - Regenerate bindings from feature files via MCP: `workspace/scripts/fix_reqnroll_steps_via_mcp.py`
-   - Run tests: `dotnet test workspace/deliverables/src/Migration.sln`
+   - Run tests: `dotnet test workspace/deliverables/generated/src/Migration.sln`
 
 6) Iterate context-by-context:
    - Expand features and mapping using MCP data only
    - Replace in-memory infra with real persistence as design stabilizes
 7) BRD generation (MCP-derived citations):
    - Source of truth: Neo4j + Qdrant via MCP (no direct file inspection)
-   - Output: `workspace/deliverables/brd.md`
+   - Output: `workspace/deliverables/generated/brd.md`
    - Ensure LLM-inferred content is explicitly labeled
 
 ## MCP step-by-step execution
@@ -52,7 +52,7 @@
 
 3) Build deliverables via MCP:
    - `c:\Users\shara\code\migration\workspace\.venv\Scripts\python.exe c:\Users\shara\code\migration\workspace\scripts\generate_deliverables_via_mcp.py`
-   - Outputs: `workspace/deliverables/api-mapping.md`, `workspace/deliverables/tests/*.cs`, `workspace/deliverables/src/Contexts/*`
+   - Outputs: `workspace/deliverables/generated/api-mapping.md`, `workspace/deliverables/generated/tests/*.cs`, `workspace/deliverables/generated/src/Contexts/*`
 
 4) Refresh tests and controller stubs via MCP:
    - `c:\Users\shara\code\migration\workspace\.venv\Scripts\python.exe c:\Users\shara\code\migration\workspace\scripts\next_steps_llm_mcp.py`

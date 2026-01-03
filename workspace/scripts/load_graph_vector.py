@@ -116,10 +116,10 @@ def main() -> None:
             client = QdrantClient(url=args.qdrant_url)
             vectors_ds = ds.dataset(os.path.join(args.parquet_root, "vectors"), format="parquet", partitioning="hive")
             collection_map = {
-                "File": args.collection-code,
-                "Comment": args.collection-comments,
-                "GeneratedComment": args.collection-generated,
-                "StoredProcedure": args.collection-procs,
+                "File": args.collection_code,
+                "Comment": args.collection_comments,
+                "GeneratedComment": args.collection_generated,
+                "StoredProcedure": args.collection_procs,
             }
             created: Dict[str, int] = {}
 
@@ -127,7 +127,7 @@ def main() -> None:
                 points_by_collection: Dict[str, List[qmodels.PointStruct]] = {}
                 for row in batch:
                     vector_type = row.get("type")
-                    collection = collection_map.get(vector_type, args.collection-code)
+                    collection = collection_map.get(vector_type, args.collection_code)
                     if collection not in created:
                         dim = len(row["vector"])
                         if client.collection_exists(collection_name=collection):

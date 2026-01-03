@@ -6,7 +6,48 @@ title: Migration Workspace
 
 ## Source code ingestion
 
-This pipeline ingests a legacy codebase, builds graph/vector data, loads it into Neo4j and Qdrant, and creates a citation index.
+This pipeline ingests a legacy codebase, builds graph/vector data, loads it into Neo4j and Qdrant, and creates a full citation index.
+
+## Ubiquitous language
+
+- Template: `workspace/prompts/ubiquitous-language-template.md`
+- Draft deliverable: `workspace/deliverables/generated/ubiquitous-language.md`
+- Populate from the legacy codebase; later steps refine it with BRD/Gherkin artifacts.
+
+## Agent workflow order
+
+Use this order when running Copilot Chat agents. Each step requires the matching Judge to run at least once before the next step starts.
+
+1) Ubiquitous language generation (legacy code)
+   - Generator: `Agent-UL-Gen-1`
+   - Judge: `Agent-UL-Judge-1`
+   - Output: `workspace/deliverables/generated/ubiquitous-language.md`
+2) BRD generation
+   - Generator: `Agent-BRD-Gen-2`
+   - Judge: `Agent-BRD-Judge-2`
+   - Output: `workspace/deliverables/generated/brd.md`
+3) Gherkin generation + test cases
+   - Generator: `Agent-Gherkin-Gen-3`
+   - Judge: `Agent-Gherkin-Judge-3`
+   - Outputs: `workspace/deliverables/generated/features/*.feature`, `workspace/deliverables/generated/tests/`
+4) Bounded context / DDD specs
+   - Generator: `Agent-BC-Gen-4`
+   - Judge: `Agent-BC-Judge-4`
+   - Output: `workspace/deliverables/generated/bounded-contexts.md`
+5) API mapping + coverage
+   - Generator: `Agent-Map-Gen-5`
+   - Judge: `Agent-Map-Judge-5`
+   - Output: `workspace/deliverables/generated/api-mapping.md`
+6) Forward engineering code generation
+   - Generator: `Agent-Code-Gen-6`
+   - Judge: `Agent-Code-Judge-6`
+   - Outputs:
+     - `workspace/deliverables/generated/src/`
+     - `workspace/deliverables/generated/coverage-report.md`
+7) Test results (integration, performance, security)
+   - Generator: `Agent-Test-Gen-7`
+   - Judge: `Agent-Test-Judge-7`
+   - Outputs: `workspace/deliverables/generated/tests/`, `workspace/deliverables/generated/src/`
 
 ### Prerequisites
 
@@ -42,18 +83,15 @@ podman volume rm workspace_neo4j_data workspace_neo4j_logs
 ```powershell
 Remove-Item -Force -ErrorAction SilentlyContinue -Path `
   workspace\data\roslyn\roslyn.jsonl, `
-  workspace\deliverables\citations\index.md
+  workspace\deliverables\generated\citations\index.md
 Remove-Item -Force -Recurse -ErrorAction SilentlyContinue -Path workspace\data\parquet
 Remove-Item -Force -Recurse -ErrorAction SilentlyContinue -Path workspace\state\*
 ```
 
-If you also want to clear generated deliverables, remove these folders:
+If you also want to clear generated deliverables, remove the entire deliverables folder:
 
 ```powershell
-Remove-Item -Force -Recurse -ErrorAction SilentlyContinue -Path `
-  workspace\deliverables\citations, `
-  workspace\deliverables\features, `
-  workspace\deliverables\src
+Remove-Item -Force -Recurse -ErrorAction SilentlyContinue -Path workspace\deliverables
 ```
 
 ### C) Restart the full ingestion process
@@ -68,7 +106,7 @@ podman compose -f workspace\podman-compose.yml up -d
 2) Run ingestion to Parquet (step 2)
 3) Validate parquet outputs (step 3)
 4) Load Neo4j + Qdrant (step 4)
-5) Build citation index (step 5)
+5) Build full citation index (step 5)
 
 ### 2) Run ingestion to Parquet
 
@@ -118,12 +156,13 @@ Optional flags:
 - `--skip-neo4j` to load only Qdrant.
 - `--skip-qdrant` to load only Neo4j.
 
-### 5) Build citation index
+### 5) Build full citation index
 
 ```powershell
 workspace\.venv\Scripts\python.exe workspace\scripts\build_citation_index.py `
   --neo4j-uri "bolt://localhost:7687" `
   --neo4j-user "neo4j" `
   --neo4j-password "neo4j12#456" `
-  --output "c:\Users\shara\code\migration\workspace\deliverables\citations\index.md"
+  --output "c:\Users\shara\code\migration\workspace\deliverables\generated\citations\index.md" `
+  --limit 0 --file-limit 0 --rel-limit 0
 ```

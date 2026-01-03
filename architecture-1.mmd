@@ -1,0 +1,77 @@
+---
+config:
+  layout: elk
+  theme: mc
+---
+flowchart TB
+  subgraph L1[Developer - VS Code]
+    direction TB
+    A1[User request in VS Code]
+    A2[Select Agent - Generator]
+    A3[Review output and Judge report]
+    A4[Human approval gate]
+  end
+
+  subgraph L2[Agent Runtime - Copilot Chat]
+    direction TB
+    B1[Generator agent]
+    B2[Judge agent]
+    B3[Generator report]
+  end
+
+  subgraph L3[MCP Client and Config]
+    direction TB
+    C1["VS Code MCP config<br/>.vscode/mcp.json"]
+    C2["Copilot MCP config<br/>workspace/deliverables/generated/copilot-mcp.json"]
+    C3[MCP client]
+  end
+
+  subgraph L4[MCP Server - graph-vector-mcp]
+    direction TB
+    D1[initialize, tools/list, prompts/list]
+    D4[prompts/get]
+    D2[tools/call - neo4j_query]
+    D3[tools/call - qdrant_search and qdrant_scroll]
+  end
+
+  subgraph L5[Data Stores]
+    direction TB
+    E1[Neo4j - graph]
+    E2[Qdrant - vector]
+    E3[Parquet and Roslyn index]
+  end
+  A1 --> A2 --> B1
+  B1 --> C3
+  C1 --> C3
+  C2 --> C3
+  C3 --> D1 --> D4 --> B1
+  B1 --> D2 --> E1
+  B1 --> D3 --> E2
+  E3 -.-> D2
+  E3 -.-> D3
+  subgraph L6[Deliverables - step by step]
+    direction TB
+    M1["1. API Mapping Generator<br/>Agent-Map-Gen-5"]
+    M2["API Mapping Judge<br/>Agent-Map-Judge-5"]
+    M4["2. BRD Generator<br/>Agent-BRD-Gen-2"]
+    M5["BRD Judge<br/>Agent-BRD-Judge-2"]
+    M7["3. Gherkin Generator<br/>Agent-Gherkin-Gen-3"]
+    M8["Gherkin Judge<br/>Agent-Gherkin-Judge-3"]
+    M10["4. Tests Generator<br/>Agent-Test-Gen-7"]
+    M11["Tests Judge<br/>Agent-Test-Judge-7"]
+    M13["5. Code Generator<br/>Agent-Code-Gen-6"]
+    M14["Code Judge<br/>Agent-Code-Judge-6"]
+
+    M1 --> M2 --> A3 --> A4 --> M4
+    M4 --> M5 --> A3 --> A4 --> M7
+    M7 --> M8 --> A3 --> A4 --> M10
+    M10 --> M11 --> A3 --> A4 --> M13
+    M13 --> M14 --> A3 --> A4
+  end
+  B1 --> M1
+  M2 --> B2
+  M5 --> B2
+  M8 --> B2
+  M11 --> B2
+  M14 --> B2
+  B2 --> B3

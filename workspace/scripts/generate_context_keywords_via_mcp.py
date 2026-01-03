@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT))
 from mcp_server.mcp_client import MCPClient
 
 
-BOUNDED_CONTEXTS_PATH = ROOT / "deliverables" / "bounded-contexts.md"
+BOUNDED_CONTEXTS_PATH = ROOT / "deliverables" / "generated" / "bounded-contexts.md"
 OUTPUT_PATH = ROOT / "state" / "context_keywords.json"
 STOPWORDS = {
     "admin",

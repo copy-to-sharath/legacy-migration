@@ -12,5 +12,6 @@ wheels/
 # Generated data artifacts
 data/
 state/
+deliverables/generated/
 *.parquet
 *.jsonl

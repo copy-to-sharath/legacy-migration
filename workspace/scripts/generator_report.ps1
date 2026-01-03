@@ -5,12 +5,12 @@ param(
     [string]$Report
 )
 
-$allowed = @("api-mapping", "brd", "gherkin", "tests", "code")
+$allowed = @("api-mapping", "brd", "bounded-contexts", "gherkin", "tests", "code")
 if ($Deliverable -notin $allowed) {
     throw "Unknown deliverable '$Deliverable'. Allowed: $($allowed -join ', ')"
 }
 
-$handoffDir = Join-Path $PSScriptRoot "..\\..\\.github\\agents\\handoffs"
+$handoffDir = Join-Path $PSScriptRoot "..\\agents\\handoffs"
 New-Item -ItemType Directory -Force -Path $handoffDir | Out-Null
 
 $outPath = Join-Path $handoffDir "$Deliverable-gen.md"

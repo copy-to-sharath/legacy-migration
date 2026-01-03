@@ -71,6 +71,7 @@ _ROSLYN_INDEX: Optional[Dict[str, Dict[str, List[Dict[str, object]]]]] = None
 _ROSLYN_WARNED = False
 _ROSLYN_MISSING_LOG: Optional[str] = None
 _ROSLYN_MISSING_SEEN: set[str] = set()
+_ALL_FILES_SET: Optional[Set[str]] = None
 _SUMMARY_MODE: str = "none"
 _SUMMARY_ALLOW_FALLBACK: bool = False
 _LLM_ENDPOINT: Optional[str] = None
@@ -169,17 +170,20 @@ def _init_model(model_name: str) -> None:
     _MODEL = SentenceTransformer(model_name)
 
 
-def _init_worker(model_name: str, roslyn_index: str, roslyn_missing_log: str) -> None:
+def _init_worker(model_name: str, roslyn_index: str, roslyn_missing_log: str, all_files: Set[str]) -> None:
     _init_model(model_name)
     _init_roslyn_index(roslyn_index)
     global _ROSLYN_MISSING_LOG
     _ROSLYN_MISSING_LOG = roslyn_missing_log
+    global _ALL_FILES_SET
+    _ALL_FILES_SET = all_files
 
 
 def _init_all_worker(
     model_name: str,
     roslyn_index: str,
     roslyn_missing_log: str,
+    all_files: Set[str],
     summary_mode: str,
     llm_endpoint: str,
     llm_api_key: str,
@@ -191,7 +195,7 @@ def _init_all_worker(
     summary_user_path: str,
     stored_proc_dir: str,
 ) -> None:
-    _init_worker(model_name, roslyn_index, roslyn_missing_log)
+    _init_worker(model_name, roslyn_index, roslyn_missing_log, all_files)
     _init_summary(
         summary_mode,
         llm_endpoint,
@@ -351,6 +355,18 @@ def _llm_summary(rel_path: str, ext: str, content: str) -> str:
     if not content_text:
         raise RuntimeError("LLM response missing content")
     return content_text.strip()
+
+
+def _has_local_service(rel_path: str) -> bool:
+    if _ALL_FILES_SET is None:
+        return False
+    base_dir = os.path.dirname(rel_path)
+    base_name = os.path.splitext(os.path.basename(rel_path))[0]
+    for ext in (".asmx", ".svc"):
+        candidate = os.path.join(base_dir, base_name + ext)
+        if candidate.lower() in _ALL_FILES_SET:
+            return True
+    return False
 
 
 LINQ_METHODS = {
@@ -1496,6 +1512,63 @@ def _process_file(args: Tuple[str, str]) -> Tuple[List[Dict[str, object]], List[
                 }
             )
     else:
+        if ext == ".wsdl":
+            if not _has_local_service(rel_path):
+                entry_id = make_id("entrypoint", rel_path)
+                service_id = make_id("external-service", rel_path)
+                nodes_rows.append(
+                    {
+                        "id": entry_id,
+                        "type": "Entrypoint",
+                        "name": os.path.basename(path),
+                        "context": context,
+                        "sourceFile": rel_path,
+                        "sourceLine": 1,
+                        "entryKind": "external",
+                        "attributes": json.dumps({"wsdl": rel_path, "external": True}, ensure_ascii=True),
+                    }
+                )
+                nodes_rows.append(
+                    {
+                        "id": service_id,
+                        "type": "ExternalService",
+                        "name": os.path.basename(path),
+                        "context": context,
+                        "sourceFile": rel_path,
+                        "sourceLine": 1,
+                        "attributes": json.dumps({"wsdl": rel_path, "external": True}, ensure_ascii=True),
+                    }
+                )
+                edges_rows.append(
+                    {
+                        "id": make_id("edge", file_id, entry_id),
+                        "type": "HAS_ENTRYPOINT",
+                        "sourceId": file_id,
+                        "targetId": entry_id,
+                        "context": context,
+                    }
+                )
+                edges_rows.append(
+                    {
+                        "id": make_id("edge", entry_id, service_id),
+                        "type": "ENTRYPOINT_SERVICE",
+                        "sourceId": entry_id,
+                        "targetId": service_id,
+                        "context": context,
+                    }
+                )
+                vector_rows.append(
+                    {
+                        "id": service_id,
+                        "type": "ExternalService",
+                        "context": context,
+                        "sourceFile": rel_path,
+                        "sourceLine": 1,
+                        "text": f"External WSDL service: {rel_path}",
+                        "vector": text_to_vector(f"External WSDL service {rel_path}", _get_model()),
+                    }
+                )
+
         if ext in CONFIG_EXTS:
             entries = _parse_config_entries(lines, ext)
             for key, value in entries:
@@ -1594,6 +1667,8 @@ def _process_file(args: Tuple[str, str]) -> Tuple[List[Dict[str, object]], List[
                     }
                 )
 
+    for node in nodes_rows:
+        node.setdefault("entryKind", "")
     return nodes_rows, edges_rows, files_rows, vector_rows
 
 
@@ -1649,6 +1724,7 @@ def main() -> None:
 
     try:
         files = list_files(args.root)
+        all_files = {os.path.relpath(p, args.root).lower() for p in files}
         state = load_state(args.state_file)
         start = state.get("index", 0)
         end = min(start + args.max_files, len(files))
@@ -1670,6 +1746,7 @@ def main() -> None:
                 args.embedding_model,
                 args.roslyn_index,
                 args.roslyn_missing_log,
+                all_files,
                 args.summary_mode,
                 args.llm_api_base,
                 args.llm_api_key,

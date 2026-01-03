@@ -88,13 +88,20 @@ public class CustomerService : WebService
 - Every deliverable is produced by a Generator agent and validated by a Judge agent.
 - Human approval is required after judge review.
 - All approvals must be logged in `c:\Users\shara\code\migration\workspace\approvals\approvals.log`.
+- Run agents in this order:
+  1) `Agent-UL-Gen-1` -> `Agent-UL-Judge-1`
+  2) `Agent-BRD-Gen-2` -> `Agent-BRD-Judge-2`
+  3) `Agent-Gherkin-Gen-3` -> `Agent-Gherkin-Judge-3`
+  4) `Agent-BC-Gen-4` -> `Agent-BC-Judge-4`
+  5) `Agent-Map-Gen-5` -> `Agent-Map-Judge-5`
+  6) `Agent-Code-Gen-6` -> `Agent-Code-Judge-6`
+  7) `Agent-Test-Gen-7` -> `Agent-Test-Judge-7`
 
 ### Prompt catalog (no hard-coded prompts)
 
 - Agent names are maintained in `c:\Users\shara\code\migration\workspace\prompts\agents.md`.
 - Workflow header template lives in `c:\Users\shara\code\migration\workspace\prompts\workflow-header.md`.
-- System prompts for MCP are in `c:\Users\shara\code\migration\workspace\prompts\system-prompts.md`.
-- API mapping template: `c:\Users\shara\code\migration\workspace\prompts\api-mapping-template.md`.
+- System prompts for MCP are defined in the agent files under `c:\Users\shara\code\migration\.github\agents`.
 - BRD template: `c:\Users\shara\code\migration\workspace\prompts\brd-template.md`.
 - Context README template: `c:\Users\shara\code\migration\workspace\prompts\context-readme-template.md`.
 - Reqnroll README template: `c:\Users\shara\code\migration\workspace\prompts\reqnroll-readme-template.md`.
@@ -107,14 +114,29 @@ public class CustomerService : WebService
 - Citation format: `relative\path\to\File.cs:line`.
 - Each section in a deliverable must have at least one citation.
 
+### Coverage reporting (post-code)
+
+- Produce `workspace/deliverables/generated/coverage-report.md` after forward engineering.
+- Use Neo4j for legacy totals (files, entrypoints, classes, methods).
+- Use Qdrant to validate semantic coverage of key legacy components.
+- Use the full citation index at `workspace/deliverables/generated/citations/index.md` (build with `--limit 0 --file-limit 0 --rel-limit 0`) to cross-check cited legacy files.
+- Report: total legacy items, cited items, coverage percentage, and top gaps.
+- Coverage formulas:
+  - File coverage % = cited legacy files / total legacy files
+  - Entrypoint coverage % = cited entrypoints / total entrypoints
+  - API coverage % = cited API entrypoints / total API entrypoints
+  - Class coverage % = cited classes / total classes
+  - Method coverage % = cited methods / total methods
+  - Qdrant evidence coverage % = cited items with at least one matching vector hit / total cited items
+
 ## MCP server usage
 
 - Provide both stdio and HTTP options in the MCP deliverable.
 - Ensure MCP clients can query the graph/vector stores (Neo4j, Qdrant).
 - Server name is `graph-vector-mcp` and is returned in `list_tools`.
 - MCP prompts are exposed via `list_prompts` and `get_prompt`.
-- Full endpoint discovery guide is in `c:\Users\shara\code\migration\workspace\deliverables\mcp-options.md`.
-- Copilot Chat MCP config file is `c:\Users\shara\code\migration\workspace\deliverables\copilot-mcp.json`.
+- Full endpoint discovery guide is in `c:\Users\shara\code\migration\workspace\deliverables\generated\mcp-options.md`.
+- Copilot Chat MCP config file is `c:\Users\shara\code\migration\workspace\deliverables\generated\copilot-mcp.json`.
 - VS Code MCP config: `c:\Users\shara\code\migration\.vscode\mcp.json` (server name `mcp-migration`).
 - Start MCP HTTP server:
   - `powershell -ExecutionPolicy Bypass -File c:\Users\shara\code\migration\workspace\scripts\start_mcp_http.ps1`
@@ -153,9 +175,9 @@ public class CustomerService : WebService
 ### Build citation index from Neo4j
 
 - Script: `c:\Users\shara\code\migration\workspace\scripts\build_citation_index.py`
-- Purpose: Produce a citation index derived from the graph.
+- Purpose: Produce a full citation index derived from the graph.
 - Example:
-  - `.venv\Scripts\python scripts\build_citation_index.py --limit 500`
+  - `.venv\Scripts\python scripts\build_citation_index.py --limit 0 --file-limit 0 --rel-limit 0`
 
 ### Run Roslyn extractor
 
@@ -168,3 +190,5 @@ public class CustomerService : WebService
 - Ingest legacy repo into Parquet.
 - Load Parquet into Neo4j/Qdrant.
 - Build the citation index.
+- Run agents in order: UL -> BRD -> Gherkin+tests -> Bounded contexts -> Code -> Test results.
+- API mapping must be completed and reviewed before code generation.
